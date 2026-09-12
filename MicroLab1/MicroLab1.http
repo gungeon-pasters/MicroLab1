@@ -1,0 +1,6 @@
+@MicroLab1_HostAddress = http://localhost:5130
+
+GET {{MicroLab1_HostAddress}}/Models/Training/
+Accept: application/json
+
+###
