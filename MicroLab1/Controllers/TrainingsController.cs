@@ -1,8 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MicroLab1.Models;
@@ -22,14 +20,15 @@ namespace MicroLab1.Controllers
 
         // GET: api/Trainings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Training>>> GetTraining()
+        public async Task<ActionResult<IEnumerable<TrainingDto>>> GetTraining()
         {
-            return await _context.Training.ToListAsync();
+            var trainings = await _context.Training.ToListAsync();
+            return Ok(trainings.Select(ToDto));
         }
 
         // GET: api/Trainings/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Training>> GetTraining(int id)
+        public async Task<ActionResult<TrainingDto>> GetTraining(int id)
         {
             var training = await _context.Training.FindAsync(id);
 
@@ -38,49 +37,48 @@ namespace MicroLab1.Controllers
                 return NotFound();
             }
 
-            return training;
+            return Ok(ToDto(training));
         }
 
         // PUT: api/Trainings/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTraining(int id, Training training)
+        public async Task<IActionResult> PutTraining(int id, CreateTrainingDto trainingDto)
         {
-            if (id != training.Id)
+            var training = await _context.Training.FindAsync(id);
+            if (training == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(training).State = EntityState.Modified;
+            training.Title = trainingDto.Title;
+            training.Type = trainingDto.Type;
+            training.DurationMinutes = trainingDto.DurationMinutes;
+            training.TrainingDate = trainingDto.TrainingDate;
+            training.Approaches = trainingDto.Approaches;
+            training.Weights = trainingDto.Weights;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TrainingExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
         // POST: api/Trainings
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Training>> PostTraining(Training training)
+        public async Task<ActionResult<TrainingDto>> PostTraining(CreateTrainingDto trainingDto)
         {
+            var training = new Training
+            {
+                Title = trainingDto.Title,
+                Type = trainingDto.Type,
+                DurationMinutes = trainingDto.DurationMinutes,
+                TrainingDate = trainingDto.TrainingDate,
+                Approaches = trainingDto.Approaches,
+                Weights = trainingDto.Weights
+            };
+
             _context.Training.Add(training);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTraining", new { id = training.Id }, training);
+            return CreatedAtAction(nameof(GetTraining), new { id = training.Id }, ToDto(training));
         }
 
         // DELETE: api/Trainings/5
@@ -99,9 +97,18 @@ namespace MicroLab1.Controllers
             return NoContent();
         }
 
-        private bool TrainingExists(int id)
+        private static TrainingDto ToDto(Training training)
         {
-            return _context.Training.Any(e => e.Id == id);
+            return new TrainingDto
+            {
+                Id = training.Id,
+                Title = training.Title,
+                Type = training.Type,
+                DurationMinutes = training.DurationMinutes,
+                TrainingDate = training.TrainingDate,
+                Approaches = training.Approaches,
+                Weights = training.Weights
+            };
         }
     }
 }

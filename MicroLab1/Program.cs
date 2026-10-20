@@ -34,8 +34,8 @@ using (var scope = app.Services.CreateScope())
         new Training
         {
             Id = 1,
-            Title = "Утренняя пробежка",
-            Type = "Кардио",
+            Title = "РЈС‚СЂРµРЅРЅСЏСЏ РїСЂРѕР±РµР¶РєР°",
+            Type = "РљР°СЂРґРёРѕ",
             DurationMinutes = 30,
             TrainingDate = DateTime.Today,
             Approaches = 1,
@@ -44,8 +44,8 @@ using (var scope = app.Services.CreateScope())
         new Training
         {
             Id = 2,
-            Title = "Силовая тренировка",
-            Type = "Силовая",
+            Title = "РЎРёР»РѕРІР°СЏ С‚СЂРµРЅРёСЂРѕРІРєР°",
+            Type = "РЎРёР»РѕРІР°СЏ",
             DurationMinutes = 60,
             TrainingDate = DateTime.Today.AddDays(1),
             Approaches = 4,
@@ -54,8 +54,8 @@ using (var scope = app.Services.CreateScope())
         new Training
         {
             Id = 3,
-            Title = "Растяжка",
-            Type = "Гибкость",
+            Title = "Р Р°СЃС‚СЏР¶РєР°",
+            Type = "Р“РёР±РєРѕСЃС‚СЊ",
             DurationMinutes = 20,
             TrainingDate = DateTime.Today.AddDays(2),
             Approaches = 2,
