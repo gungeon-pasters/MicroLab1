@@ -1,5 +1,6 @@
 using MicroLab1.Models;
 using MicroLab1.Services;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +24,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseHttpMetrics();
+
 app.UseAuthorization();
+
 app.MapControllers();
+app.MapMetrics();
 
 app.Run();

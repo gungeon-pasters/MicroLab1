@@ -3,6 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MicroLab1.Models;
 using MicroLab1.Services;
+using MicroLab1.Metrics;
 
 namespace MicroLab1.Controllers
 {
@@ -35,7 +36,7 @@ namespace MicroLab1.Controllers
             {
                 trainings = await _trainings.Find(_ => true).ToListAsync();
             }
-
+            MongoTrainingMetrics.OperationsTotal.WithLabels("get_all", "success").Inc();
             return Ok(trainings.Select(ToDto));
         }
 
@@ -49,6 +50,7 @@ namespace MicroLab1.Controllers
             var training = await _trainings.Find(t => t.Id == id).FirstOrDefaultAsync();
             if (training == null) return NotFound();
 
+            MongoTrainingMetrics.OperationsTotal.WithLabels("get_one", "success").Inc();
             return Ok(ToDto(training));
         }
 
@@ -72,6 +74,8 @@ namespace MicroLab1.Controllers
 
             var final = filters.Any() ? fb.And(filters) : fb.Empty;
             var trainings = await _trainings.Find(final).ToListAsync();
+
+            MongoTrainingMetrics.OperationsTotal.WithLabels("filtered", "success").Inc();
             return Ok(trainings.Select(ToDto));
         }
 
@@ -92,6 +96,8 @@ namespace MicroLab1.Controllers
             };
 
             await _trainings.InsertOneAsync(training);
+
+            MongoTrainingMetrics.OperationsTotal.WithLabels("create", "success").Inc();
             return CreatedAtAction(nameof(GetTraining), new { id = training.Id }, ToDto(training));
         }
 
@@ -119,6 +125,8 @@ namespace MicroLab1.Controllers
             };
 
             await _trainings.ReplaceOneAsync(t => t.Id == id, updated);
+
+            MongoTrainingMetrics.OperationsTotal.WithLabels("update", "success").Inc();
             return NoContent();
         }
 
@@ -132,6 +140,7 @@ namespace MicroLab1.Controllers
             var result = await _trainings.DeleteOneAsync(t => t.Id == id);
             if (result.DeletedCount == 0) return NotFound();
 
+            MongoTrainingMetrics.OperationsTotal.WithLabels("delete", "success").Inc();
             return NoContent();
         }
 
@@ -143,6 +152,7 @@ namespace MicroLab1.Controllers
             if (result.DeletedCount == 0)
                 return NotFound("В базе нет тренировок для удаления.");
 
+            MongoTrainingMetrics.OperationsTotal.WithLabels("delete_all", "success").Inc();
             return NoContent();
         }
 
