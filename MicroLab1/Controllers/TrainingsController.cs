@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MicroLab1.Models;
+using MicroLab1.Metrics;
 
 namespace MicroLab1.Controllers
 {
@@ -23,6 +24,8 @@ namespace MicroLab1.Controllers
         public async Task<ActionResult<IEnumerable<TrainingDto>>> GetTraining()
         {
             var trainings = await _context.Training.ToListAsync();
+            TrainingMetrics.OperationsTotal.WithLabels("get_all", "success").Inc();
+
             return Ok(trainings.Select(ToDto));
         }
 
@@ -36,7 +39,7 @@ namespace MicroLab1.Controllers
             {
                 return NotFound();
             }
-
+            TrainingMetrics.OperationsTotal.WithLabels("get_one", "success").Inc();
             return Ok(ToDto(training));
         }
 
@@ -57,7 +60,18 @@ namespace MicroLab1.Controllers
             training.Approaches = trainingDto.Approaches;
             training.Weights = trainingDto.Weights;
 
+            if (training == null)
+            {
+                TrainingMetrics.OperationsTotal
+                    .WithLabels("update", "not_found")
+                    .Inc();
+
+                return NotFound();
+            }
+
             await _context.SaveChangesAsync();
+            TrainingMetrics.OperationsTotal.WithLabels("update", "success").Inc();
+
             return NoContent();
         }
 
@@ -78,6 +92,8 @@ namespace MicroLab1.Controllers
             _context.Training.Add(training);
             await _context.SaveChangesAsync();
 
+            TrainingMetrics.OperationsTotal.WithLabels("create", "success").Inc();
+
             return CreatedAtAction(nameof(GetTraining), new { id = training.Id }, ToDto(training));
         }
 
@@ -86,13 +102,20 @@ namespace MicroLab1.Controllers
         public async Task<IActionResult> DeleteTraining(int id)
         {
             var training = await _context.Training.FindAsync(id);
+
             if (training == null)
             {
+                TrainingMetrics.OperationsTotal
+                    .WithLabels("delete", "not_found")
+                    .Inc();
+
                 return NotFound();
             }
 
             _context.Training.Remove(training);
             await _context.SaveChangesAsync();
+
+            TrainingMetrics.OperationsTotal.WithLabels("delete", "success").Inc();
 
             return NoContent();
         }
